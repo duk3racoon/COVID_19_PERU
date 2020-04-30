@@ -3,70 +3,67 @@ title: "Propagacion"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
-## Casos Reportados
+# Monitoreo de casos
 
-```{r, echo=FALSE, message=FALSE}
+```{r Librerias, echo=FALSE, message=FALSE}
 library(rio)
-library(dplyr)
-library(tidyr)
-library(ggplot2)
 library(gridExtra)
 library(kableExtra)
-library(JLutils)
+library(JLutils) # devtools::install_github("larmarange/JLutils")
 library(tidyverse)
+library(cowplot)
 library(sf)
+library(ggrepel)
 library(readxl)
 library(cowplot)
 library(ggpubr)
+library(directlabels)
+library(ggiraph)
 data=import("reportes_minsa.xlsx")
 ```
 
-```{r}
-dat2 <- data %>%
-  dplyr::group_by(Dia)%>%
-  dplyr::summarise(Total_Pruebas=max(Total_Pruebas),
-                   Positivos=max(Positivos))%>%
-  mutate(pos_new=Positivos-lag(Positivos,default = 0),
-         pruebas_dia=Total_Pruebas-lag(Total_Pruebas,default = 0))
+En esta página complementamos los gráficos presentados en la [sala situacional del coronavirus](https://covid19.minsa.gob.pe/sala_situacional.asp) página oficial del MINSA
 
-f3=dat2 %>%
-  mutate(neg_new=pruebas_dia-pos_new)%>%
-  dplyr::select(Dia, Descartados=neg_new, 
-                Positivos=pos_new)%>%
-  gather(res, count, -Dia)%>%
-  uncount(count) %>%
-  ggplot(aes(x = Dia, fill = res)) +
-  geom_bar(position = "fill") +
-  stat_fill_labels(size=2)+
-  #scale_fill_discrete_sequential(palette="BluGrn") +
-  labs(y = "proportion", fill = "Resultado",
-       title = paste0("Proporción de positivos del total \n de muestras x dia"),
-       caption = paste0("Actualizado al", format(as.Date(max(data$Dia)),"%d/%m"))) +
-  theme_bw() +
-  theme(text = element_text(size=10),
-        legend.position="bottom")
 
-f1=dat2 %>%
+```{r Graficos, message=FALSE,error=FALSE}
+f1=data %>%
   ggplot(aes(x = Dia)) +
-  ylim(0,max(dat2$Positivos)*1.1)+
-  geom_bar(aes(y = pos_new, fill = "Nuevos"), stat = "identity", alpha=.5)+
-  geom_label(aes(Dia, pos_new, label = pos_new), vjust = 0.5,label.size = 0.10)+
+  ylim(0,max(data$Positivos)*1.1)+
+  geom_bar_interactive(aes(y = Nuevos_Positivos,
+                           tooltip = Nuevos_Positivos,fill = "Nuevos"), stat = "identity", alpha=.5)+
+  #geom_label(aes(Dia, Nuevos_Positivos, label = Nuevos_Positivos), vjust = 0.5,label.size = 0.10)+
   geom_line(aes(y = Positivos, col = "Acumulados"), size=1) +
-  geom_point(aes(y = Positivos), col = "#8B1C62") +
-  geom_label(aes(Dia, Positivos, label = Positivos), vjust = -0.3,
-             label.size = 0.07)+
+  geom_point_interactive(aes(y = Positivos,tooltip = Positivos), col = "#8B1C62")+
   labs(y = "Número de casos reportados", color = " Casos", fill = " ", 
-       title = paste0("Numero de casos confirmados"),
-       caption = paste0("Actualizado al", format(as.Date(max(data$Dia)),"%d/%m"))) +
+       #title = paste0("Numero de casos confirmados"),
+       caption = paste0("Actualizado al", format(as.Date(max(data$Dia)),"%d/%m"),
+                        "\n Fuente Minsa. Repositorio:https://github.com/jincio/COVID_19_PERU")) +
   scale_fill_manual(values = c("Nuevos" = "#43CD80")) +
   scale_color_manual(values = c("Acumulados" = "#8B1C62")) +
-  #scale_y_continuous() +
+  ggtitle("Número de casos positivos de pacientes COVID-19, Perú")+
   theme_minimal() +
   theme(legend.position="bottom")
 
+f1_1=data %>%
+  mutate(Positivos=Positivos+replace_na(RapidasPositivos,0),
+         Nuevos_Positivos=Nuevos_Positivos+replace_na(PR_nuevos,0))%>%
+  ggplot(aes(x = Dia)) +
+  ylim(0,max(data$Positivos+data$RapidasPositivos,na.rm=TRUE)*1.1)+
+  geom_bar_interactive(aes(y = Nuevos_Positivos,tooltip =Nuevos_Positivos, fill = "Nuevos"), stat = "identity", alpha=.5)+
+  geom_line(aes(y = Positivos, col = "Acumulados"), size=1) +
+  geom_point_interactive(aes(y = Positivos,tooltip=Positivos), col = "#8B1C62")+
+  labs(y = "Número de casos reportados", color = " Casos", fill = " ", 
+       #title = paste0("Numero de casos confirmados"),
+       caption = paste0("Actualizado al", format(as.Date(max(data$Dia)),"%d/%m"),
+                        "\n Fuente Minsa. Repositorio:https://github.com/jincio/COVID_19_PERU")) +
+  scale_fill_manual(values = c("Nuevos" = "#43CD80")) +
+  scale_color_manual(values = c("Acumulados" = "#8B1C62")) +
+  ggtitle("Número de casos positivos de pacientes COVID-19,\n Perú (Moleculares+PR)")+
+  theme_minimal() +
+  theme(legend.position="bottom")
 
 f2=data %>%
   dplyr::select(Dia, Positivos, Descartados)%>%
@@ -74,156 +71,533 @@ f2=data %>%
   uncount(count) %>%
   ggplot(aes(x = Dia, fill = res)) +
   geom_bar(position = "fill") +
-  stat_fill_labels(size=2)+
+  stat_fill_labels(size=3, angle=90)+
   #scale_fill_discrete_sequential(palette="BluGrn") +
   labs(y = "proportion", fill = "Resultado",
-       title = paste0("Proporción de positivos del total \nde muestras analizadas"),
+       #title = paste0("Proporción de positivos del total \nde muestras analizadas"),
        caption = paste0("Actualizado al", format(as.Date(max(data$Dia)),"%d/%m"))) +
   theme_bw() +
   theme(legend.position="bottom")
 
-f4=dat2 %>%
-  ggplot(aes(x = Dia)) +
-  ylim(0,max(dat2$Total_Pruebas)*1.1)+
-  geom_bar(aes(y = pruebas_dia, fill = "Nuevos"), stat = "identity", alpha=.5)+
-  geom_label(aes(Dia, pruebas_dia, label = pruebas_dia), vjust = 0.5)+
-  geom_line(aes(y = Total_Pruebas, col = "Acumulados"), size=1) +
-  geom_point(aes(y = Total_Pruebas), col = "#8B1C62") +
-  geom_label(aes(Dia, Total_Pruebas, label = Total_Pruebas), vjust = -0.5,
-             label.size = 0.07)+
-  labs(y = "Numero de pruebas reportadas", color = " Pruebas", fill = " ",
-       title = paste0("Numero de pruebas aplicadas"),
+f2_1=data %>%
+  mutate(RapidasPositivos=replace_na(RapidasPositivos,0),
+         PruebasRapidas=replace_na(PruebasRapidas,0),
+         Positivos=Positivos+RapidasPositivos,
+         Descartados=Descartados+PruebasRapidas-RapidasPositivos)%>%
+  dplyr::select(Dia, Positivos, Descartados)%>%
+  gather(res, count, -Dia)%>%
+  uncount(count) %>%
+  ggplot(aes(x = Dia, fill = res)) +
+  geom_bar(position = "fill") +
+  stat_fill_labels(size=3, angle=90)+
+  #scale_fill_discrete_sequential(palette="BluGrn") +
+  labs(y = "Porcentaje", fill = "Resultado",
+       #title = paste0("Proporción de positivos del total \nde muestras analizadas(incluye pruebas rápidas)"),
        caption = paste0("Actualizado al", format(as.Date(max(data$Dia)),"%d/%m"))) +
+  theme_bw() +
+  theme(legend.position="bottom")
+
+
+f3=data%>%
+  mutate(neg_new=Pruebas_dia-Nuevos_Positivos)%>%
+  dplyr::select(Dia, Descartados=neg_new, 
+                Positivos=Nuevos_Positivos)%>%
+  gather(res, count, -Dia)%>%
+  uncount(count) %>%
+  ggplot(aes(x = Dia, fill = res)) +
+  geom_bar(position = "fill") +
+  stat_fill_labels(size=3, angle=90)+
+  #scale_fill_discrete_sequential(palette="BluGrn") +
+  labs(y = "proportion", fill = "Resultado",
+       #title = paste0("Proporción de positivos del total \n de muestras x dia"),
+       caption = paste0("Actualizado al", format(as.Date(max(data$Dia)),"%d/%m"))) +
+  theme_bw() +
+  theme(text = element_text(size=10),
+        legend.position="bottom")
+
+f3_1=data%>%
+  mutate(PRP=replace_na(RapidasPositivos,0),
+         PRA_D=replace_na(Pruebas_diaPR,0),
+         PRP_N=replace_na(PR_nuevos,0),
+         Nuevos_Positivos=Nuevos_Positivos+PRP_N,
+         neg_new=Pruebas_dia+PRA_D-Nuevos_Positivos)%>%
+  dplyr::select(Dia, Descartados=neg_new, 
+                Positivos=Nuevos_Positivos)%>%
+  gather(res, count, -Dia)%>%
+  uncount(count) %>%
+  ggplot(aes(x = Dia, fill = res)) +
+  geom_bar(position = "fill") +
+  stat_fill_labels(size=3, angle=90)+
+  #scale_fill_discrete_sequential(palette="BluGrn") +
+  labs(y = "proportion", fill = "Resultado",
+       #title = paste0("Proporción de positivos del total \n de muestras x dia"),
+       caption = paste0("Actualizado al", format(as.Date(max(data$Dia)),"%d/%m"))) +
+  theme_bw() +
+  theme(text = element_text(size=10),
+        legend.position="bottom")
+
+
+f4=data %>%
+  ggplot(aes(x = Dia)) +
+  ylim(0,max(data$Total_Pruebas)*1.1)+
+  geom_bar_interactive(aes(y = Pruebas_dia,tooltip =Pruebas_dia, fill = "Nuevos"), stat = "identity", alpha=.5)+
+  geom_line(aes(y = Total_Pruebas, col = "Acumulados"), size=1) +
+  geom_point_interactive(aes(y = Total_Pruebas,tooltip=Total_Pruebas), col = "#8B1C62")+
+  labs(y = "Número de pruebas analizadas", color = " Casos", fill = " ", 
+       #title = paste0("Numero de casos confirmados"),
+       caption = paste0("Actualizado al", format(as.Date(max(data$Dia)),"%d/%m"),
+                        "\n Fuente Minsa. Repositorio:https://github.com/jincio/COVID_19_PERU")) +
   scale_fill_manual(values = c("Nuevos" = "#43CD80")) +
   scale_color_manual(values = c("Acumulados" = "#8B1C62")) +
-  #scale_y_continuous(sec.axis = sec_axis(~ .)) +
+  ggtitle("Número de pruebas moleculares analizadas COVID-19 \n (acumulados y nuevos), Perú")+
+  theme_minimal() +
+  theme(legend.position="bottom")
+
+f4_1=data %>%
+  mutate(Total_Pruebas=Total_Pruebas+replace_na(PruebasRapidas,0),
+         Pruebas_dias=Pruebas_dia+replace_na(Pruebas_diaPR,0))%>%
+  dplyr::select(Dia,Pruebas_dias,Total_Pruebas)%>%
+  ggplot(aes(x = Dia)) +
+  ylim(0,max(data$Total_Pruebas+data$PruebasRapidas,na.rm=TRUE)*1.1)+
+  geom_bar_interactive(aes(y = Pruebas_dias,tooltip =Pruebas_dias, fill = "Nuevos"), stat = "identity", alpha=.5)+
+  geom_line(aes(y = Total_Pruebas, col = "Acumulados"), size=1) +
+  geom_point_interactive(aes(y = Total_Pruebas,tooltip =Total_Pruebas), col = "#8B1C62")+
+  labs(y = "Número de pruebas analizadas", color = " Casos", fill = " ", 
+       #title = paste0("Numero de casos confirmados"),
+       caption = paste0("Actualizado al", format(as.Date(max(data$Dia)),"%d/%m"),
+                        "\n Fuente Minsa. Repositorio:https://github.com/jincio/COVID_19_PERU")) +
+  scale_fill_manual(values = c("Nuevos" = "#43CD80")) +
+  scale_color_manual(values = c("Acumulados" = "#8B1C62")) +
+  ggtitle("Número de pruebas moleculares y rápidas \n analizadas COVID-19 (acumulados y nuevos), Perú")+
+  theme_minimal() +
+  theme(legend.position="bottom")
+
+f5=data%>%#mutate(Pruebas_diaPR=replace_na(Pruebas_diaPR,0))%>%
+  select(Dia,
+         Moleculares=Pruebas_dia,
+         Pruebas_Rap=Pruebas_diaPR)%>%
+  gather(tipo,numero, -Dia)%>%
+  ggplot(aes(fill=tipo, y=numero, x=Dia)) + 
+  geom_bar(position="dodge", stat="identity")+
+  geom_text(aes(label=numero), position=position_dodge(width=0.9),
+            angle = 90,size = 3)+
+  theme_minimal() +
+  theme(legend.position="bottom")
+
+f6=data%>%
+  slice(21:n())%>%
+  ggplot(aes(x=Dia))+
+  ylim(0,800)+
+  geom_line(aes(y=Hospitalizados_UCI))+
+  geom_point(aes(y = Hospitalizados_UCI), col = "#8B1C62")+
+  geom_text_repel(
+    aes(x=Dia,y=Hospitalizados_UCI,label = Hospitalizados_UCI), 
+    vjust = -0.3,
+    size = 3.1,
+    box.padding = 0.05)+
+  labs(y = "Hospitalizados camas UCI", color = " Casos", fill = " ", 
+       #title = paste0("Numero de casos confirmados"),
+       caption = paste0("Actualizado al", format(as.Date(max(data$Dia)),"%d/%m")))+
+  ggtitle("Hospitalizados en camas UCI")+
+  geom_hline(yintercept=276, linetype="dashed", 
+             color = "red", size=1)+
+  geom_hline(yintercept=525, linetype="dashed", 
+             color = "orange", size=1)+
+  geom_hline(yintercept=656, linetype="dashed", 
+             color = "orange", size=1)+
+  geom_hline(yintercept=773, linetype="dashed", 
+             color = "blue", size=1)+
+  annotate(geom="text", 
+           label="Capacidad inicial: 276", x=max(data$Dia), 
+           y=276, vjust=-1,hjust = 1)+
+  annotate(geom="text", 
+           label="Dato al 20/04: 525", x=max(data$Dia), 
+           y=525, vjust=-1,hjust = 2) +
+  annotate(geom="text", 
+           label="Dato al 23/04: 656", x=max(data$Dia), 
+           y=656, vjust=-1,hjust = 1) +
+  annotate(geom="text", 
+           label="Capacidad actual: 773", x=max(data$Dia), 
+           y=726, vjust=-1,hjust = 1) +
   theme_minimal() +
   theme(legend.position="bottom")
 ```
 
-## Panel conjunto 
+```{r graficos2, message=FALSE, eval=FALSE}
+dia_list <- tibble(time= 1:length(dat2$Dia), .name_repair = "minimal")
+dat2 <-add_column(dat2, dia_list= dia_list)
 
-Para los gráficos indivisudales he adaptado del post de Gabriel Carrasco Escobar (http://gcarrasco.rbind.io/blog/covid19_viz/)
+dat2$Dia<- as.Date(as.POSIXct(dat2$Dia, 'GMT'))
 
-```{r, message=FALSE, eval=FALSE}
-panel=ggarrange(f1,f4,f2,f3,
-          ncol=2,nrow=2,
-          widths = c(0.5,0.5,0.5,0.5),
-          font.label = list(size = 10, color = "black", face =
-                              "bold", family = NULL))
+# Fitting exp fn a data
+## Fitting linear model to get initial parameters y = \alpha * exp(beta * x)
+x <- unlist(dat2$dia_list$time)
+y <- unlist(dat2$Positivos)
+data.df <- data.frame(x = x, y = y)
+exp.model0 <-lm(log(y) ~ x, data.df)
+alpha.0 <- exp(coef(exp.model0)[1])
+beta.0 <- coef(exp.model0)[2]
+
+## Starting parameters
+start <- list(alpha = alpha.0, beta = beta.0)
+## Fitting nlm
+exp.model <- nls(y ~ alpha*exp(beta*x), data = data.df, start = start)
+#coef(exp.model)[1]
+#coef(exp.model)[2]
+alpha=coef(exp.model)[1]
+beta<- coef(exp.model)[2]
+form=paste0("y=",round(alpha,3),"*","exp(",round(beta,3),"*x)")
+#Serie de numero de casos confirmados
+library(scales)
+f7<-dat2 %>%
+  ggplot(aes(x = Dia)) +
+  scale_x_date(labels = date_format("%b-%d"), breaks = date_breaks("7 days"), expand = c(0,1))+
+  ylim(0,max(dat2$Positivos)*1.15)+
+  geom_area(aes(y = Positivos, col = "Acumulados"), size=1, fill="#c9c4e0") +
+  geom_point(aes(y = Positivos), col = "#474785") +
+  geom_text(aes(Dia, Positivos, label = Positivos), vjust = -2, size=3)+
+  geom_bar(aes(y = pos_new, fill = "Nuevos"), stat = "identity", alpha=.5)+
+  geom_text(aes(Dia, pos_new, label = pos_new), vjust = 2, size=2)+
+  #stat_smooth(aes(y=Positivos), method="glm", method.args = list(family = gaussian(link="log")),  se=FALSE, linetype=1, size=0.4, colour="blue") +
+  labs(color= NULL, fill = NULL, caption = paste0("Actualizado al ", format(as.Date(max(dat2$Dia)),"%d-%m"))) +
+  scale_fill_manual(values = c("Nuevos" = "#1c8b7d")) +
+  scale_color_manual(values = c("Acumulados" = "#c9c4e0", "Tendencia exponencial" = "blue")) +
+  theme(legend.position="bottom")+
+  annotate("segment", x=as.Date("2020-03-05"), xend=as.Date("2020-03-07"), y = 76, yend = 76, colour = "blue")+
+  #annotate("text", x=as.Date("2020-03-06"), y = 270, label = "Exponencial", size= 3)+
+  #annotate("text", x=as.Date("2020-03-07"), y = 65, label = form, size= 3, colour="blue")+
+  theme_minimal()
+```
+
+## Tendencia y número de casos (Acumulados y diarios) pruebas moleculares
+
+- Usa el cursor para ver el número 
+
+```{r Panelf1, message=FALSE, echo=FALSE}
+girafe(code = print(f1) )
+```
 
 
-annotate_figure(panel,
-                top = text_grob("COVID19-PERÚ", color = "red", face = "bold", size = 14),
-                bottom = text_grob("Fuente: \n Minsa. Ver (https://jincio.github.io/COVID_19_PERU/Propagacion.html)", color = "blue",
-                                   hjust = 1, x = 1, face = "italic", size = 10),
+## Tendencia y número de casos (Acumulados y diarios) pruebas moleculares y pruebas rápidas
+
+- Usa el cursor para ver el número 
+
+```{r Panelf1_1, message=FALSE, echo=FALSE}
+
+girafe(code = print(f1_1) )
+
+```
+
+## Proporción de casos positivos del total de pruebas analizadas.
+
+```{r Panelf2, message=FALSE, echo=FALSE}
+# Panel para publicacion
+panel<- ggarrange(f2,
+          ncol=1,nrow=1,
+          font.label = list(size = 10, color = "black", face = "bold", family = NULL))
+          annotate_figure(panel,
+                top = text_grob("Proporción de casos positivos COVID-19, Perú (moleculares)", color = "#474785", face = "bold", size = 14),
+                bottom = text_grob("Fuente: MINSA. Ver (https://jincio.github.io/COVID_19_PERU/Propagacion.html)", color = "black", hjust = 1, x = 1, face = "italic", size = 8)
                 #left = text_grob("Figure arranged using ggpubr", color = "green", rot = 90),
-                #right = "www.joseincio.com",
+                #fig.lab = "Figure 1", fig.lab.face = "bold"
+)
+
+```
+
+## Proporción de casos positivos del total de pruebas analizadas (moleculares+rápidas).
+
+```{r Panelf2_1, message=FALSE, echo=FALSE}
+# Panel para publicacion
+panel<- ggarrange(f2_1,
+          ncol=1,nrow=1,
+          font.label = list(size = 10, color = "black", face = "bold", family = NULL))
+          annotate_figure(panel,
+                top = text_grob("Proporción de casos positivos COVID-19 incluyendo pruebas rápidas, Perú", color = "#474785", face = "bold", size = 14),
+                bottom = text_grob("Fuente: MINSA. Ver (https://jincio.github.io/COVID_19_PERU/Propagacion.html)", color = "black", hjust = 1, x = 1, face = "italic", size = 8)
+                #left = text_grob("Figure arranged using ggpubr", color = "green", rot = 90),
+                #fig.lab = "Figure 1", fig.lab.face = "bold"
+)
+
+```
+
+## Proporción de casos positivos del total de pruebas moleculares analizadas (x dia)
+
+```{r Panelf3, message=FALSE, echo=FALSE}
+
+panel<- ggarrange(f3,
+          ncol=1,nrow=1,
+          font.label = list(size = 10, color = "black", face = "bold", family = NULL))
+          annotate_figure(panel,
+                top = text_grob("Proporción de casos positivos COVID-19 x dia, Perú", color = "#474785", face = "bold", size = 14),
+                bottom = text_grob("Fuente: MINSA. Ver (https://jincio.github.io/COVID_19_PERU/Propagacion.html)", color = "black", hjust = 1, x = 1, face = "italic", size = 8)
+                #left = text_grob("Figure arranged using ggpubr", color = "green", rot = 90),
                 #fig.lab = "Figure 1", fig.lab.face = "bold"
 )
 
 ```
 
 
-When a figure is not generated from R code, you may use knitr::include_graphics() to insert it to the document, e.g.
+## Proporción de casos positivos del total de pruebas moleculares y rápidas analizadas (x dia)
 
-```{r echo=FALSE, out.width='100%'}
-knitr::include_graphics('panel2.png')
+```{r Panelf3_1, message=FALSE, echo=FALSE}
+# Panel para publicacion
+panel<- ggarrange(f3_1,
+          ncol=1,nrow=1,
+          font.label = list(size = 10, color = "black", face = "bold", family = NULL))
+          annotate_figure(panel,
+                top = text_grob("Proporción de casos positivos COVID-19 x dia, Perú (moleculares y rápidas)", color = "#474785", face = "bold", size = 14),
+                bottom = text_grob("Fuente: MINSA. Ver (https://jincio.github.io/COVID_19_PERU/Propagacion.html)", color = "black", hjust = 1, x = 1, face = "italic", size = 8)
+                #left = text_grob("Figure arranged using ggpubr", color = "green", rot = 90),
+                #fig.lab = "Figure 1", fig.lab.face = "bold"
+)
 ```
 
-## Mapa
+## Número de pruebas moleculares analizadas (acumulados y diarios)
+
+- Usa el cursor para ver el número 
+
+```{r Panelf4, message=FALSE, echo=FALSE}
+# Panel para publicacion
+girafe(code = print(f4) )
+
+```
+
+## Número de pruebas moleculares + rápidas analizadas (acumulados y diarios)
+
+- Usa el cursor para ver el número 
+
+```{r Panelf4_1, message=FALSE, echo=FALSE}
+# Panel para publicacion
+girafe(code = print(f4_1) )
+
+```
+
+```{r Panelf5, message=FALSE, echo=FALSE}
+# Panel para publicacion
+panel<- ggarrange(f5,
+          ncol=1,nrow=1,
+          font.label = list(size = 10, color = "black", face = "bold", family = NULL))
+          annotate_figure(panel,
+                top = text_grob("Número de pruebas moleculares y rápidas analizadas COVID-19 x dia, Perú", color = "#474785", face = "bold", size = 14),
+                bottom = text_grob("Fuente: MINSA. Ver (https://jincio.github.io/COVID_19_PERU/Propagacion.html)", color = "black", hjust = 1, x = 1, face = "italic", size = 8)
+                #left = text_grob("Figure arranged using ggpubr", color = "green", rot = 90),
+                #fig.lab = "Figure 1", fig.lab.face = "bold"
+)
+
+```
+
+
+## Hospitalizados Camas-UCI
 
 ```{r}
-departamento<- read_sf("~/Box Sync/BD/Shapes/LIMITES INEI_2016/DEPARTAMENTO_30_JULIO_2016.shp")%>%
-  select(Departamento = NOMBDEP, 
-         geometry)
+panel<- ggarrange(f6,
+          ncol=1,nrow=1,
+          font.label = list(size = 10, color = "black", face = "bold", family = NULL))
+          annotate_figure(panel,
+                top = text_grob("Hospitalizados unidades UCI, Perú", color = "#474785", face = "bold", size = 14),
+                bottom = text_grob("Fuente: MINSA. Ver (https://perucovid19.netlify.app/propagacion)", color = "black", hjust = 1, x = 1, face = "italic", size = 8)
+                #left = text_grob("Figure arranged using ggpubr", color = "green", rot = 90),
+                #fig.lab = "Figure 1", fig.lab.face = "bold"
+)
 
-data2=import("reportes_minsa.xlsx", sheet=2)
-data3=data2%>%
-  filter(Fecha==max(data2$Fecha))%>%
-  mutate(Departamento=ifelse(Departamento=="CALLAO","LIMA",
-                             Departamento))%>%
-  dplyr::group_by(Departamento)%>%
-  dplyr::summarise(casos=sum(Positivos))
-
-
-colores<- c("grey80",
-                      "dodgerblue4",
-                      "forestgreen",
-                      "deepskyblue3",
-                      "mediumpurple4",
-                      "royalblue3",
-            "darkred"
-                      # "brown3",
-                      # "gold2",
-                      # "grey80"
-                      )
-m1=departamento%>%
-  left_join(data3, 
-                         by="Departamento")%>%
-  mutate(casos=replace_na(casos,0))%>%
-  mutate(casos=as.factor(casos))%>%
-  ggplot()+
-  geom_sf(aes(fill = casos))+
-  scale_x_discrete()+
-  scale_fill_manual(values = colores)+
-  labs(title = paste0("Número de casos positivos al: ", format(as.Date(max(data2$Fecha)),"%d/%m")),
-       caption = "Callao se suma a Lima",
-       fill="Casos")+
-  theme(plot.title = element_text(hjust = 0.5),
-        panel.background = element_blank())
 ```
 
-```{r}
-plot_grid(m1)
+## Comparaciones con otros países. 
+
+```{r comparacion1, echo=FALSE}
+confirmed <- "https://raw.github.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+
+WorldData<-import(file = confirmed)%>%
+  mutate(type="confirmed")%>%
+  tidyr::gather(Fecha,Valor,
+                -c(type,"Province/State",
+                        "Country/Region"))%>%
+  dplyr::select(Country="Country/Region",
+                                    Provincia="Province/State",
+                                    type,
+                                    Valor,
+                                    Fecha)
+
+paises<- c("Peru","Chile","Ecuador", "Brazil")
+
+d1=WorldData%>%filter(type=="confirmed",
+                   Country%in%paises,
+                   Valor>0)%>%
+  group_by(Country)%>%
+  mutate(Fecha=as.Date(Fecha,"%m/%d/"))%>%
+  mutate(start = first(Fecha),
+         Dstart=Fecha-start)%>%
+  ungroup()%>%
+  mutate(log=log(Valor+0.01))%>%
+  filter(Dstart>2)
+  
+p=d1%>%
+  ggplot(aes(x = Dstart,y=Valor,group=Country)) +
+  geom_line(aes(col = Country))+
+  scale_y_continuous(trans = "log10")+
+  geom_dl(aes(label = Country), 
+          method = list(dl.trans(x = x + 0.2), "last.points", cex = 0.8))+
+  labs(y="Confirmados", x="Número de días desde el primer caso")
+
+
 ```
 
-## Gráficos Individuales 
+```{r PanelAL1, echo=FALSE, fig.height=7, message=FALSE, warning=FALSE}
+panel<-ggarrange(p,
+          ncol=1,nrow=1,
+          font.label = list(size = 10, color = "black", face = "bold", family = NULL))
 
-### Número de pacientes positivos
-
-```{r}
-plot_grid(f1)
+annotate_figure(panel,
+                top = text_grob("Casos confirmados en escala log10", color = "#474785", face = "bold", size = 14),
+                bottom = text_grob("Fuente: JHU", color = "black", hjust = 1, x = 1, face = "italic", size = 8))
 ```
 
-### Proporción del total 
+Código explicado [Aquí](https://joseincio.com/post/ggplot-lines-en-log-y-y-axis-en-conteo/)
 
-```{r}
-plot_grid(f2)
+### Comparación Fallecidos
+
+```{r comparacion2, echo=FALSE}
+deaths <- "https://raw.github.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
+
+WorldData<-import(file = deaths)%>%
+  mutate(type="deaths")%>%
+  tidyr::gather(Fecha,Valor,
+                -c(type,"Province/State",
+                        "Country/Region"))%>%
+  dplyr::select(Country="Country/Region",
+                                    Provincia="Province/State",
+                                    type,
+                                    Valor,
+                                    Fecha)
+
+paises<- c("Peru","Chile","Ecuador", "Brazil")
+
+d1=WorldData%>%filter(type=="deaths",
+                   Country%in%paises,
+                   Valor>0)%>%
+  group_by(Country)%>%
+  mutate(Fecha=as.Date(Fecha,"%m/%d/"))%>%
+  mutate(start = first(Fecha),
+         Dstart=Fecha-start)%>%
+  ungroup()%>%
+  mutate(log=log(Valor+0.01))%>%
+  filter(Dstart>2)
+  
+p=d1%>%
+  ggplot(aes(x = Dstart,y=Valor,group=Country)) +
+  geom_line(aes(col = Country))+
+  scale_y_continuous(trans = "log10")+
+  geom_dl(aes(label = Country), 
+          method = list(dl.trans(x = x + 0.2), "last.points", cex = 0.8))+
+  labs(y="Fallecidos", x="Número de días desde el primer caso")
+
+
 ```
 
-### Proporción de positivos por pruebas aplicadas en el día
-```{r}
-plot_grid(f3)
+```{r PanelAL2, echo=FALSE, fig.height=7, message=FALSE, warning=FALSE}
+panel<-ggarrange(p,
+          ncol=1,nrow=1,
+          font.label = list(size = 10, color = "black", face = "bold", family = NULL))
+
+annotate_figure(panel,
+                top = text_grob("Fallecidos en escala log10", color = "#474785", face = "bold", size = 14),
+                bottom = text_grob("Fuente: JHU", color = "black", hjust = 1, x = 1, face = "italic", size = 8))
 ```
 
-### Pruebas
-
-```{r, message=FALSE}
-plot_grid(f4)
-```
 
 ## Tabla
 
 ```{r}
-data%>%dplyr::group_by(Dia)%>%
-  dplyr::summarise(Positivos=max(Positivos),
-            Pruebas_aplicadas=max(Total_Pruebas))%>%
-            mutate(  
-            lag=lag(Pruebas_aplicadas, default = 0),
-            lag2=lag(Positivos,default = 0),
-            Pruebas_XDia=Pruebas_aplicadas-lag,
-            Nuevos_Positivos=Positivos-lag2)%>%
-  dplyr::select(-c(lag,lag2))%>%kable()
+data%>%
+  dplyr::select(Dia,
+                "Pruebas analizadas"="Total_Pruebas",
+                Positivos,
+                Descartados,
+                TasaPositivos)%>%
+  mutate(Dia = as.character(Dia),
+         TasaPositivos = round(TasaPositivos, 2)) %>% 
+  arrange(desc(Dia)) %>% 
+  DT::datatable(
+    options = list(pageLength = 10, 
+                   lengthMenu = c(10, 25, 40),
+                   language = list(lengthMenu = "Mostrar _MENU_ entradas",
+                                   info ="Mostrando _START_ al _END_ de _TOTAL_ entradas",
+                                   search = "Buscar:",
+                                   paginate = list(previous = "Anterior",
+                                                   'next' = "Siguiente"))
+                   ),
+    rownames = FALSE
+  )
             
 ```
 
 
-## Fuentes
-
-Para la construcción de la tabla he usado la información difundida por MINSA en su cuenta oficial de twitter [@Minsa_Peru](https://twitter.com/Minsa_Peru)
+Para los gráficos he adaptado del post de Gabriel Carrasco Escobar (http://gcarrasco.rbind.io/blog/covid19_viz/)
 
 
+# Informes de Minsa
+
+Para la construcción de la tabla he usado la información difundida por MINSA en su cuenta oficial de twitter [@Minsa_Peru](https://twitter.com/Minsa_Peru). Existe también la página https://www.gob.pe/8662. 
+
+04/13
+
+https://www.gob.pe/institucion/minsa/noticias/112315-minsa-casos-confirmados-por-coronavirus-covid-19-ascienden-a-9-784-en-el-peru-comunicado-n-64
+
+03/29
+
+https://www.gob.pe/institucion/minsa/noticias/111590-minsa-casos-confirmados-por-coronavirus-covid-19-ascienden-a-852-en-el-peru-comunicado-n-40
+
+03/28 
+
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">📄Reporte │ Esta es la situación del coronavirus <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a> en Perú hasta las 00:00 horas del 28 de marzo. <a href="https://twitter.com/hashtag/Per%C3%BAEst%C3%A1EnNuestrasManos?src=hash&amp;ref_src=twsrc%5Etfw">#PerúEstáEnNuestrasManos</a><br><br>Para más información, visita: <a href="https://t.co/F4GaDrvulE">https://t.co/F4GaDrvulE</a> <a href="https://t.co/kxI5j275r3">pic.twitter.com/kxI5j275r3</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1243956611653214209?ref_src=twsrc%5Etfw">March 28, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+03/25
+
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">🗓 Reporte │ Esta es la situación del coronavirus <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a> en Perú hasta las 00:00 horas del 25 de marzo. <a href="https://twitter.com/hashtag/Per%C3%BAEst%C3%A1EnNuestrasManos?src=hash&amp;ref_src=twsrc%5Etfw">#PerúEstáEnNuestrasManos</a><br><br>Para más información, visita: <a href="https://t.co/F4GaDrvulE">https://t.co/F4GaDrvulE</a> <a href="https://t.co/9wE4kaIYZ5">pic.twitter.com/9wE4kaIYZ5</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1242872053709115395?ref_src=twsrc%5Etfw">March 25, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+03/24
+
+Dos fallecidos 
+
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">🔴COMUNICADO | El <a href="https://twitter.com/hashtag/Minsa?src=hash&amp;ref_src=twsrc%5Etfw">#Minsa</a> lamenta informar el sensible fallecimiento de dos personas por <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a> en territorio peruano. Se trata de un varón de 38 años y una mujer de 66 años. Extendemos nuestras condolencias a sus familias. <a href="https://t.co/xrsq52SpwW">pic.twitter.com/xrsq52SpwW</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1242488321869262848?ref_src=twsrc%5Etfw">March 24, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+03/23
+
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">🗓 Reporte │ Esta es la situación del coronavirus <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a> en Perú hasta las 1:00 horas del 23 de marzo. Se registran 36 ciudadanos hospitalizados. Esta actualización corrige información publicada. <a href="https://twitter.com/hashtag/Per%C3%BAEst%C3%A1EnNuestrasManos?src=hash&amp;ref_src=twsrc%5Etfw">#PerúEstáEnNuestrasManos</a><br><br>Para más información, visita: <a href="https://t.co/F4GaDrvulE">https://t.co/F4GaDrvulE</a> <a href="https://t.co/zYNDZNOSrL">pic.twitter.com/zYNDZNOSrL</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1242146715588853761?ref_src=twsrc%5Etfw">March 23, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+03/22 
+
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">🗓 Reporte │ Esta es la situación del coronavirus <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a> en Perú hasta las 2:30 horas del 22 de marzo. Se registran 31 ciudadanos hospitalizados. <a href="https://twitter.com/hashtag/Per%C3%BAEst%C3%A1EnNuestrasManos?src=hash&amp;ref_src=twsrc%5Etfw">#PerúEstáEnNuestrasManos</a><br><br>Para más información, visita: <a href="https://t.co/F4GaDrvulE">https://t.co/F4GaDrvulE</a> <a href="https://t.co/GWRxaHvY2B">pic.twitter.com/GWRxaHvY2B</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1241831353684983808?ref_src=twsrc%5Etfw">March 22, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+03/21
+
+Casos:
+
+https://www.gob.pe/8662
+
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">🔴COMUNICADO | El <a href="https://twitter.com/hashtag/Minsa?src=hash&amp;ref_src=twsrc%5Etfw">#Minsa</a> lamenta informar que hoy, sábado 21 de marzo, a las 07:20 horas, se registró el sensible fallecimiento de una persona con <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a> en Piura. El ministerio extiende sus condolencias a la familia. <a href="https://t.co/ZwMefFiTsq">pic.twitter.com/ZwMefFiTsq</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1241395322632503300?ref_src=twsrc%5Etfw">March 21, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+03/20
+
+### Casos
+
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">🗓 Reporte │ Esta es la situación del coronavirus <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a> en Perú hasta las 12:00 horas del 20 de marzo. <a href="https://twitter.com/hashtag/Per%C3%BAEst%C3%A1EnNuestrasManos?src=hash&amp;ref_src=twsrc%5Etfw">#PerúEstáEnNuestrasManos</a><br><br>Para más información, visita: <a href="https://t.co/F4GaDrvulE">https://t.co/F4GaDrvulE</a> <a href="https://t.co/Kg7Gr2QRRL">pic.twitter.com/Kg7Gr2QRRL</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1241080637622292482?ref_src=twsrc%5Etfw">March 20, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">🔴COMUNICADO | El <a href="https://twitter.com/hashtag/Minsa?src=hash&amp;ref_src=twsrc%5Etfw">#Minsa</a> informa que, a las 9:17 horas de hoy, viernes 20 de marzo, se registró la muerte de una persona con <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a> en territorio peruano. Expresamos nuestras más sentidas condolencias a sus familiares. <a href="https://t.co/B8MEz7alXR">pic.twitter.com/B8MEz7alXR</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1241048470955458560?ref_src=twsrc%5Etfw">March 20, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+03/19 
+
+Casos: 
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">🗓 Reporte │ Esta es la situación del coronavirus <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a> en Perú hasta las 12:00 horas del 19 de marzo. Se registran dos altas. <a href="https://twitter.com/hashtag/Per%C3%BAEst%C3%A1EnNuestrasManos?src=hash&amp;ref_src=twsrc%5Etfw">#PerúEstáEnNuestrasManos</a><br><br>Para más información, visita: <a href="https://t.co/F4GaDrN5dc">https://t.co/F4GaDrN5dc</a> <a href="https://t.co/zYppUus7Ip">pic.twitter.com/zYppUus7Ip</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1240706791366733824?ref_src=twsrc%5Etfw">March 19, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+Fallecidos: 
+
+Segundo y tercero
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">🔴 URGENTE | El <a href="https://twitter.com/hashtag/Minsa?src=hash&amp;ref_src=twsrc%5Etfw">#Minsa</a> lamenta informar la sensible muerte de dos ciudadanos por coronavirus <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a> en territorio peruano. Extendemos nuestras condolencias a sus familias. <a href="https://t.co/UF5X1ukqtR">pic.twitter.com/UF5X1ukqtR</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1240818095280869377?ref_src=twsrc%5Etfw">March 20, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+Primero 
+
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr">🔴COMUNICADO | El <a href="https://twitter.com/hashtag/Minsa?src=hash&amp;ref_src=twsrc%5Etfw">#Minsa</a> lamenta informar que, a las 15:00 horas de hoy, jueves 19 de marzo, se registró el primer fallecimiento por <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a>. <a href="https://t.co/sgC0nhk87b">pic.twitter.com/sgC0nhk87b</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1240761528007221249?ref_src=twsrc%5Etfw">March 19, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 03/18
 
 <blockquote class="twitter-tweet"><p lang="es" dir="ltr">🗓 Reporte │ Esta es la situación del coronavirus <a href="https://twitter.com/hashtag/COVID19?src=hash&amp;ref_src=twsrc%5Etfw">#COVID19</a> en Perú hasta las 7:00 horas del 18 de marzo. <a href="https://twitter.com/hashtag/Per%C3%BAEst%C3%A1EnNuestrasManos?src=hash&amp;ref_src=twsrc%5Etfw">#PerúEstáEnNuestrasManos</a><br><br>Para más información, visita: <a href="https://t.co/F4GaDrvulE">https://t.co/F4GaDrvulE</a> <a href="https://t.co/pPPwxu13dG">pic.twitter.com/pPPwxu13dG</a></p>&mdash; Ministerio de Salud (@Minsa_Peru) <a href="https://twitter.com/Minsa_Peru/status/1240305962256343040?ref_src=twsrc%5Etfw">March 18, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
@@ -291,3 +665,16 @@ p2=data%>%
   geom_line()+geom_label()
 grid.arrange(p1, p2, ncol = 1)
 ```
+
+
+# Responsables 
+
+Colaboran para la elaboración de los gráficos:
+
+- Francisco Rodríguez
+- Gabriel Carrasco
+- Joan Martinez
+- José Incio
+- Samuel Calderon
+
+

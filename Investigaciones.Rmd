@@ -10,15 +10,58 @@ Papers/links/findings de revistas científicas.
 
 # Links útiles 
 
+## Para Consulta
+
+- Biblioteca de UPC: Artículos sobre coronavirus
 [Biblioteca-UPC-Coronavirus](https://biblioteca.upc.edu.pe/covid-19/)
 
-# Artículos y resumenes
+# Resumenes y artículos
+
+## Efecto en los pulmones
+
+[Nature como afecta en los pulmones](https://www.sciencemag.org/news/2020/04/how-does-coronavirus-kill-clinicians-trace-ferocious-rampage-through-body-brain-toes)
+
+
+## Testeo
+[FDA aprueba el uso de máquina que entrega resultado en 5 minutos](https://www.the-scientist.com/news-opinion/fda-gives-abbott-emergency-use-of-five-minute-coronavirus-test-67351?utm_content=124004813&utm_medium=social&utm_source=facebook&hss_channel=fbp-212009668822281)
+
+## Modelos sobre contagio
+
+- [The effect of human mobility and control measures on the COVID-19 epidemic in China](https://science.sciencemag.org/content/early/2020/03/25/science.abb4218)
+
+**Abstract**
+The ongoing COVID-19 outbreak expanded rapidly throughout China. Major behavioral, clinical, and state interventions have been undertaken to mitigate the epidemic and prevent the persistence of the virus in human populations in China and worldwide. It remains unclear how these unprecedented interventions, including travel restrictions, affected COVID-19 spread in China. We use real-time mobility data from Wuhan and detailed case data including travel history to elucidate the role of case importation on transmission in cities across China and ascertain the impact of control measures. Early on, the spatial distribution of COVID-19 cases in China was explained well by human mobility data. Following the implementation of control measures, this correlation dropped and growth rates became negative in most locations, although shifts in the demographics of reported cases were still indicative of local chains of transmission outside Wuhan. This study shows that the drastic control measures implemented in China substantially mitigated the spread of COVID-19.
+
+- [Nowcasting and forecasting the potential domestic and international spread of the 2019-nCoV outbreak originating in Wuhan, China: a modelling study](https://www.thelancet.com/pdfs/journals/lancet/PIIS0140-6736(20)30260-9.pdf)
+
+**Findings**
+
+Findings In our baseline scenario, we estimated that the basic reproductive number for 2019-nCoV was 2·68 (95% CrI 2·47–2·86) and that 75 815 individuals (95% CrI 37 304–130 330) have been infected in Wuhan as of Jan 25, 2020. The epidemic doubling time was 6·4 days (95% CrI 5·8–7·1). We estimated that in the baseline scenario, Chongqing, Beijing, Shanghai, Guangzhou, and Shenzhen had imported 461 (95% CrI 227–805),
+113 (57–193), 98 (49–168), 111 (56–191), and 80 (40–139) infections from Wuhan, respectively. If the transmissibility of 2019-nCoV were similar everywhere domestically and over time, we inferred that epidemics are already growing exponentially in multiple major cities of China with a lag time behind the Wuhan outbreak of about 1–2 weeks.
+
+## Cuanto dura el SARS-COV-2 (Coronavirus) en superficies
+
+[Aerosol and Surface Stability of SARS-CoV-2 as Compared with SARS-CoV-1](https://www.nejm.org/doi/full/10.1056/NEJMc2004973)
 
 ## Sobre el origen del virus
 
 [The proximal origin of SARS-COV-2](https://www.nature.com/articles/s41591-020-0820-9?utm_source=twitter&utm_medium=social&utm_content=organic&utm_campaign=NGMT_USG_JC01_GL_NRJournals)
 
-## Coronavirus puts drugs repurposing on the fast track [link](https://www.nature.com/articles/d41587-020-00003-1) 
+## Efecto de fármacos
+
+### Reportes de ESSALUD sobre el efecto de fármacos en el tratamiendto de pacientes con Coronavirus
+
+IETSI-EsSalud acaba de sacar reportes breves basados en evidencias sobre el manejo de COVID-19:
+
+[LINK A REPORTES](https://www.dropbox.com/sh/fvv75489t7t0yi7/AACM7HowfgRtwWYo8PA1Ilpha?dl=0&fbclid=IwAR1lnZiYDltoT_4CFT0a9R1uHLDt95kNGwZX8Tn1R6H28ntBh_ttrc7c7mk)
+
+Fuente [link](https://www.facebook.com/photo.php?fbid=10156630222781780&set=a.462103211779&type=3&theater)
+
+### Resumen Elaborado por Comciencia
+
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr"><a href="https://twitter.com/hashtag/COVID%E3%83%BC19?src=hash&amp;ref_src=twsrc%5Etfw">#COVIDー19</a> <br>Uno de los instrumentos más necesarios para salvar la vida a los pacientes son los FÁRMACOS eficaces y seguros. Lamentablemente, a pesar de ya disponer de una buena cantidad de candidatos a la fecha, ninguno dispone de evidencias suficientes <a href="https://twitter.com/hashtag/coronavirus?src=hash&amp;ref_src=twsrc%5Etfw">#coronavirus</a> <a href="https://twitter.com/hashtag/ciencia?src=hash&amp;ref_src=twsrc%5Etfw">#ciencia</a> <a href="https://t.co/EGUjuTzz5p">pic.twitter.com/EGUjuTzz5p</a></p>&mdash; Comciencia . (@comcienciacrac) <a href="https://twitter.com/comcienciacrac/status/1241561946614190080?ref_src=twsrc%5Etfw">March 22, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+### Coronavirus puts drugs repurposing on the fast track [link](https://www.nature.com/articles/d41587-020-00003-1) 
 
 Resumen elaborado por **Cleidy Osorio**:
 
@@ -26,7 +69,18 @@ La empresa Ascletis Pharma fue autorizada por el gobierno chino para probar medi
 Por otro lado, el conocimiento de la estructura de diferentes proteínas del COVID-19, que también son similares en otros virus, son también de suma importancia para confirmar mediante la predicción con herramientas computacionales, la reutilización de fármacos ya conocidos.
  En palabras de Bryan Mounce, profesor asistente del Departamento de Microbiología e Inmunología, Universidad de Loyola, Chicago: "Los agentes (medicamentos) de amplio espectro (amplia acción) son ideales para situaciones de brotes [epidémicos] en las que no sabemos completamente a qué nos enfrentamos…"
 
-## Startups están desarrollando pruebas rápidas para el diagnostico de SARS-CoV-2 (Coronavirus) [link](https://www.medrxiv.org/content/10.1101/2020.03.06.20032334v1) 
+
+### Startups están desarrollando pruebas rápidas para el diagnostico de SARS-CoV-2 (Coronavirus) [link](https://www.medrxiv.org/content/10.1101/2020.03.06.20032334v1) 
 
 
+
+
+## Investigaciones de vacunas 
+### Sobre la vacuna 
+
+[UPCH y FARVET Perú buscan desarrollar una vacuna contra el COVID-19](https://elcomercio.pe/tecnologia/ciencias/coronavirus-vacuna-tratamiento-investigadores-peruanos-ya-trabajan-en-una-posible-vacuna-contra-el-covid-19-noticia/)
+
+[Europa Lanza clinical trial para probar vacuna](https://presse-inserm-fr.cdn.ampproject.org/c/s/presse.inserm.fr/en/launch-of-a-european-clinical-trial-against-covid-19/38737/amp/)
+
+<blockquote class="twitter-tweet"><p lang="es" dir="ltr"><a href="https://twitter.com/hashtag/vacunas?src=hash&amp;ref_src=twsrc%5Etfw">#vacunas</a><br><br>Aún faltan meses para que podamos contar con una vacuna segura contra el COVID-19. A la fecha se han identificado una serie de candidatos para esta vacuna, los cuales han sido resumidos por el equipo de COMCIENCIA en la infografía de hoy.<a href="https://twitter.com/hashtag/ciencia?src=hash&amp;ref_src=twsrc%5Etfw">#ciencia</a> <a href="https://twitter.com/hashtag/coronavirus?src=hash&amp;ref_src=twsrc%5Etfw">#coronavirus</a> <a href="https://twitter.com/hashtag/salud?src=hash&amp;ref_src=twsrc%5Etfw">#salud</a> <a href="https://t.co/dENVitqLmM">pic.twitter.com/dENVitqLmM</a></p>&mdash; Comciencia . (@comcienciacrac) <a href="https://twitter.com/comcienciacrac/status/1241200175240052736?ref_src=twsrc%5Etfw">March 21, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 

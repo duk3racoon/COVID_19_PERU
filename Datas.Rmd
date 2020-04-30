@@ -1,0 +1,59 @@
+---
+title: "Bases de datos"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE, message = FALSE)
+```
+
+## Bases de datos
+
+El repositorio [Aquí](https://github.com/jincio/COVID_19_PERU) contiene bases de datos que pueden ser libremente utilizados. Diferentes personas han contribuido con las bases. 
+
+Las bases se pueden descargar desde [Aquí](https://github.com/jincio/COVID_19_PERU/tree/master/data)
+En la siguiente tabla listamos los files y los contribuidores.
+
+## Tabla
+
+```{r}
+library(rio)
+library(kableExtra)
+data=import("Datas_sets.xlsx")
+kable(data,format = "markdown")
+```
+
+## Notas 
+
+### Folder Principal
+
+**Reporte Minsa**
+
+- Tiene información de los reportes de MINSA a nivel nacional y regional. Es la fuente principal para 
+https://perucovid19.netlify.app/propagacion
+https://perucovid19.netlify.app/departamentos
+
+Responsables: 
+
+  - José Incio
+  - Gabriel Carrasco 
+  - Sara Kelly Rebaza Cardenas (twitter: [KellyRebazaC](https://twitter.com/KellyRebazaC))
+  - Bryan Gianfranco Fernandez Camacho (twitter: [bryanferncam](https://twitter.com/bryanferncam))
+
+### Folder: Diresa
+
+Informes recopilados de las Diresas
+
+- **informacion_distritos**
+- **información_diresa_fallecidos**
+
+
+
+Responsables:
+
+  - José Incio
+  - Nathan Nadramija (twitter: [NNadramija](https://twitter.com/nnnadramija))
+  - Viviana Maldonado Garcia (twitter: [avimaga](https://twitter.com/avimaga))
+  - Rosmery Juyo Juyo (twitter: [chicaidealista](https://twitter.com/chicaidealista))
+  - Lucero Flores Werlen (twitter: [LuceroFloresW)](https://twitter.com/LuceroFloresW))
+
+

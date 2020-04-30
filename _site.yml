@@ -5,15 +5,15 @@ navbar:
       href: index.html
       icon: fa-home
       text: Home
-    - 
-      href: Fuentes.html
-      text: Fuentes Oficiales
     -
       href: Fake.html
       text: Noticias Falsas
     -
       href: Propagacion.html
-      text: Propagación
+      text: Datos Nacionales
+    -
+      href: Departamentos.html
+      text: Datos Regiones
     - 
       href: Investigaciones.html
       text: Investigaciones Científicas
@@ -23,6 +23,9 @@ navbar:
     - 
       href: Proyectos.html
       text: Proyectos
+    - 
+      href: Datas.html
+      text: Bases_disponibles
   title: ""
 output:
   bookdown::html_document2:

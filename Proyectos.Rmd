@@ -1,12 +1,38 @@
 ---
 title: "Proyectos"
 ---
+IDEAS
 
-# IDEAS
+Ideas y proyectos en algunos casos te puedes sumar a ellos, revisa la información de contacto en cada entrada. 
 
-Dejar ideas de proyectos y contacto del que propone la idea si alguien se quiere sumar se ponen en contacto. 
+## Dashboards
+
+Carlos Barboza ha desarrollado este [dashboard](https://app.powerbi.com/view?r=eyJrIjoiODY0OTY1ZjktNWMyOC00NWQ2LThlZWYtYWEwMDExZTAwNDc4IiwidCI6IjEwZWM3OTJjLTU4NzctNGU1ZS05OGE5LTFiMWQ3YTNjM2RlYiIsImMiOjR9)
+
+Usando la información recopilada en este repositorio
+
+## Lista de proyectos 
+
+Base de datos de proyectos (hardware, software, bio) para la población general y personal de salud
+
+[Google Docs con la lista de proyectos](https://docs.google.com/spreadsheets/d/1b6pNTaSLhot0tKwDuhXCh9glBSZZ7TR2QPnloMGLS-Q/edit#gid=1567877262)
+
 
 ## Voluntariados/Servicios
+
+### Para sesiones de consejería virtuales 
+
+#### [https://www.hospitapp.pe/](https://www.hospitapp.pe/)
+
+#### Detalles 
+
+```{r echo=FALSE, out.width='60%'}
+knitr::include_graphics('./Imagenes/proyecto1.jpg')
+```
+
+[REPO GITHUB](https://github.com/BenjiSantos/callme-for-covit19)
+
+### Lista de personal medico
 
 Pierre Padilla-Huamantinco organizó una lista de personal médico voluntario que está disponible para atender consultas.  [Post-Facebook](https://www.facebook.com/pierre.padilla/posts/10218763295786247?comment_id=10218775110481607&notif_id=1584453404437361&notif_t=mentions_comment)
 
